@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SG90 Servo Calculator</title>
+  <style>
+    :root, html[data-theme="dark"] {
+      --bg: #0f1419;
+      --bg-glow-a: #1c2e46;
+      --bg-glow-b: #163428;
+      --panel: #1a2330;
+      --panel-top: #1d2836;
+      --panel-edge: #2a3a4d;
+      --ink: #e8eef6;
+      --muted: #8fa3b8;
+      --tick: #4d6178;
+      --accent: #3d8bfd;
+      --accent-soft: #1e3a5f;
+      --pulse: #3ee0b4;
+      --pulse-border: rgba(62, 224, 180, 0.35);
+      --pulse-bg: rgba(62, 224, 180, 0.08);
+      --code-bg: #0b1016;
+      --cmt: #6d8299;
+      --kw: #8ab4ff;
+      --fn: #3ee0b4;
+      --num: #ffd166;
+      --btn: #243244;
+      --btn-active: #3d8bfd;
+      --btn-ink: #e8eef6;
+      --mount: #1c2430;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+    }
+
+    html[data-theme="light"] {
+      --bg: #e8eef5;
+      --bg-glow-a: #d5e4f7;
+      --bg-glow-b: #d7eee6;
+      --panel: #ffffff;
+      --panel-top: #f7fafc;
+      --panel-edge: #d5dee8;
+      --ink: #17202b;
+      --muted: #5c6e82;
+      --tick: #b7c4d2;
+      --accent: #1f6feb;
+      --accent-soft: #c9ddfb;
+      --pulse: #0f9f78;
+      --pulse-border: rgba(15, 159, 120, 0.35);
+      --pulse-bg: rgba(15, 159, 120, 0.1);
+      --code-bg: #f1f5fa;
+      --cmt: #6d7d8f;
+      --kw: #1f6feb;
+      --fn: #0f9f78;
+      --num: #b45309;
+      --btn: #e8eef5;
+      --btn-active: #1f6feb;
+      --btn-ink: #17202b;
+      --mount: #2b3644;
+      --shadow: 0 18px 40px rgba(23, 32, 43, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, var(--bg-glow-a) 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, var(--bg-glow-b) 0%, transparent 50%),
+        var(--bg);
+      color: var(--ink);
+      font-family: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 40px 20px 56px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.7rem;
+      letter-spacing: -0.03em;
+      font-weight: 700;
+    }
+
+    .lede {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .chip {
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--pulse);
+      border: 1px solid var(--pulse-border);
+      background: var(--pulse-bg);
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+
+    .theme-toggle {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--panel-edge);
+      background: var(--panel);
+      color: var(--ink);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .theme-toggle:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .theme-toggle .sun { display: none; }
+    html[data-theme="light"] .theme-toggle .moon { display: none; }
+    html[data-theme="light"] .theme-toggle .sun { display: block; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 18px;
+    }
+
+    @media (max-width: 760px) {
+      .grid { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: flex-start; }
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--panel-top) 0%, var(--panel) 100%);
+      border: 1px solid var(--panel-edge);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .angle-row {
+      display: grid;
+      grid-template-columns: 1fr 96px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .presets {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .presets button {
+      border: 1px solid var(--panel-edge);
+      background: var(--btn);
+      color: var(--btn-ink);
+      border-radius: 10px;
+      padding: 9px 0;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .presets button[aria-pressed="true"] {
+      background: var(--btn-active);
+      border-color: var(--btn-active);
+      color: #fff;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      background: var(--code-bg);
+      color: var(--ink);
+      border: 1px solid var(--panel-edge);
+      border-radius: 12px;
+      padding: 12px 10px;
+      font-size: 1.15rem;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 22px;
+      background: transparent;
+      border: 0;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      margin-top: -7px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--accent);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--accent);
+      cursor: pointer;
+    }
+
+    .calibrate {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .field input { font-size: 1rem; padding: 10px 8px; }
+
+    .readout {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat {
+      background: var(--code-bg);
+      border: 1px solid var(--panel-edge);
+      border-radius: 14px;
+      padding: 14px 14px 12px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 1.45rem;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.03em;
+    }
+
+    .stat.pulse strong { color: var(--pulse); }
+
+    .code-block {
+      margin-top: 16px;
+      background: var(--code-bg);
+      border: 1px solid var(--panel-edge);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95rem;
+      overflow-x: auto;
+    }
+
+    .code-block .cmt { color: var(--cmt); }
+    .code-block .kw { color: var(--kw); }
+    .code-block .fn { color: var(--fn); }
+    .code-block .num { color: var(--num); }
+
+    .note {
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .dial-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 420px;
+    }
+
+    .stage {
+      position: relative;
+      width: min(100%, 340px);
+      aspect-ratio: 1;
+    }
+
+    .gauge {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .gauge .arc { stroke: var(--panel-edge); fill: none; }
+    .gauge text { fill: var(--muted); font-size: 13px; }
+    .gauge line { stroke: var(--tick); }
+    .gauge line.major { stroke: var(--muted); }
+
+    .servo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 132px;
+      height: 96px;
+      margin-left: -66px;
+      margin-top: 4px;
+      background: linear-gradient(180deg, #3a8fd4, #2c6ea8);
+      border-radius: 10px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 10px 24px rgba(0,0,0,0.25);
+    }
+
+    .servo::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 10px;
+      height: 18px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 4px;
+    }
+
+    .servo::after {
+      content: "SG90";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 10px;
+      text-align: center;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: rgba(255,255,255,0.7);
+    }
+
+    .horn {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 168px;
+      height: 32px;
+      margin: -16px 0 0 -16px;
+      transform-origin: 16px 16px;
+      z-index: 3;
+      transition: transform 80ms linear;
+    }
+
+    .horn-shape {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, #fff, #d9dee6);
+      border-radius: 16px 10px 10px 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      position: relative;
+    }
+
+    .horn-shape::before,
+    .horn-shape::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border-radius: 50%;
+      background: #9aa6b4;
+    }
+
+    .horn-shape::before {
+      left: 7px;
+      width: 18px;
+      height: 18px;
+      background: radial-gradient(circle at 40% 40%, #fff 0 28%, #7d8a98 32% 100%);
+    }
+
+    .horn-shape::after {
+      right: 10px;
+      width: 8px;
+      height: 8px;
+      box-shadow: -16px 0 0 #9aa6b4, -32px 0 0 #9aa6b4, -48px 0 0 #9aa6b4;
+    }
+
+    .mount {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 42px;
+      height: 42px;
+      margin: -21px 0 0 -21px;
+      background: var(--mount);
+      border-radius: 50%;
+      border: 4px solid #cfd6de;
+      z-index: 4;
+    }
+
+    .wires {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + 100px);
+      width: 10px;
+      height: 36px;
+      margin-left: -5px;
+      background: linear-gradient(#c9a227, #c9a227 33%, #d24c4c 33% 66%, #4aa3e8 66%);
+      border-radius: 0 0 3px 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>SG90 Servo Calculator</h1>
+        <p class="lede">Map 0–180° to PWM pulse width. Calibrate min/max µs to match your servo.</p>
+      </div>
+      <div class="header-actions">
+        <div class="chip">50 Hz · 20 ms frame</div>
+        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch to light mode" title="Toggle dark mode">
+          <svg class="moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M21 14.3A8.5 8.5 0 1 1 9.7 3 7 7 0 0 0 21 14.3z"/>
+          </svg>
+          <svg class="sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div class="label">
+          <span>Angle</span>
+          <span>0° – 180°</span>
+        </div>
+        <div class="angle-row">
+          <input id="angleSlider" type="range" min="0" max="180" value="90" aria-label="Servo angle slider">
+          <input id="angleNumber" type="number" min="0" max="180" value="90" aria-label="Servo angle in degrees">
+        </div>
+        <div class="presets" role="group" aria-label="Angle presets">
+          <button type="button" data-angle="0">0°</button>
+          <button type="button" data-angle="45">45°</button>
+          <button type="button" data-angle="90">90°</button>
+          <button type="button" data-angle="135">135°</button>
+          <button type="button" data-angle="180">180°</button>
+        </div>
+
+        <div class="calibrate">
+          <label class="field">
+            <span>Min pulse (0°)</span>
+            <input id="minUs" type="number" min="400" max="1500" step="1" value="500" aria-label="Minimum pulse width in microseconds">
+          </label>
+          <label class="field">
+            <span>Max pulse (180°)</span>
+            <input id="maxUs" type="number" min="1500" max="2600" step="1" value="2400" aria-label="Maximum pulse width in microseconds">
+          </label>
+        </div>
+
+        <div class="readout">
+          <div class="stat pulse">
+            <span>Pulse width</span>
+            <strong id="pulseOut">1450 µs</strong>
+          </div>
+          <div class="stat">
+            <span>Duty cycle</span>
+            <strong id="dutyOut">7.25%</strong>
+          </div>
+        </div>
+
+        <div class="code-block" aria-live="polite">
+          <div class="cmt">// Arduino Servo library</div>
+          <div><span class="kw">servo</span>.<span class="fn">write</span>(<span class="num" id="codeAngle">90</span>);</div>
+          <div><span class="kw">servo</span>.<span class="fn">writeMicroseconds</span>(<span class="num" id="codeUs">1450</span>);</div>
+        </div>
+        <p class="note" id="mapNote">Linear map: 0° → 500 µs, 180° → 2400 µs. Adjust min/max if your SG90 hunts or cannot reach the stops.</p>
+      </section>
+
+      <section class="card dial-card">
+        <div class="stage" aria-hidden="true">
+          <svg class="gauge" viewBox="0 0 340 340">
+            <path class="arc" d="M 50 170 A 120 120 0 0 1 290 170" stroke-width="2"/>
+            <g id="ticks"></g>
+            <text x="38" y="178" text-anchor="end">0°</text>
+            <text x="170" y="36" text-anchor="middle">90°</text>
+            <text x="302" y="178" text-anchor="start">180°</text>
+          </svg>
+          <div class="servo"></div>
+          <div class="wires"></div>
+          <div class="horn" id="horn"><div class="horn-shape"></div></div>
+          <div class="mount"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const PERIOD_US = 20000;
+    const PRESETS = [0, 45, 90, 135, 180];
+    const DEFAULT_MIN = 500;
+    const DEFAULT_MAX = 2400;
+
+    const slider = document.getElementById("angleSlider");
+    const number = document.getElementById("angleNumber");
+    const minInput = document.getElementById("minUs");
+    const maxInput = document.getElementById("maxUs");
+    const pulseOut = document.getElementById("pulseOut");
+    const dutyOut = document.getElementById("dutyOut");
+    const codeAngle = document.getElementById("codeAngle");
+    const codeUs = document.getElementById("codeUs");
+    const mapNote = document.getElementById("mapNote");
+    const horn = document.getElementById("horn");
+    const ticks = document.getElementById("ticks");
+    const themeToggle = document.getElementById("themeToggle");
+    const presetButtons = Array.prototype.slice.call(document.querySelectorAll(".presets button"));
+
+    const cx = 170, cy = 170, rOuter = 120, rInner = 108, rMajor = 100;
+    for (let a = 0; a <= 180; a += 15) {
+      const rad = (Math.PI / 180) * a;
+      const major = a % 45 === 0;
+      const inner = major ? rMajor : rInner;
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", (cx + rOuter * Math.cos(rad)).toFixed(1));
+      line.setAttribute("y1", (cy - rOuter * Math.sin(rad)).toFixed(1));
+      line.setAttribute("x2", (cx + inner * Math.cos(rad)).toFixed(1));
+      line.setAttribute("y2", (cy - inner * Math.sin(rad)).toFixed(1));
+      line.setAttribute("stroke-width", major ? "2.5" : "1.5");
+      line.setAttribute("stroke-linecap", "round");
+      if (major) line.classList.add("major");
+      ticks.appendChild(line);
+    }
+
+    function clamp(n, lo, hi) {
+      return Math.min(hi, Math.max(lo, n));
+    }
+
+    function clampAngle(value) {
+      const n = Number(value);
+      if (!Number.isFinite(n)) return 0;
+      return clamp(Math.round(n), 0, 180);
+    }
+
+    function readRange(commit) {
+      let minUs = Number(minInput.value);
+      let maxUs = Number(maxInput.value);
+      if (!Number.isFinite(minUs)) minUs = DEFAULT_MIN;
+      if (!Number.isFinite(maxUs)) maxUs = DEFAULT_MAX;
+      minUs = clamp(Math.round(minUs), 400, 1500);
+      maxUs = clamp(Math.round(maxUs), 1500, 2600);
+      if (maxUs <= minUs) maxUs = minUs + 1;
+      if (commit) {
+        minInput.value = String(minUs);
+        maxInput.value = String(maxUs);
+      }
+      return { minUs: minUs, maxUs: maxUs };
+    }
+
+    function pulseUs(angle, minUs, maxUs) {
+      return minUs + (angle / 180) * (maxUs - minUs);
+    }
+
+    function persist() {
+      try {
+        localStorage.setItem("sg90-calc", JSON.stringify({
+          theme: document.documentElement.getAttribute("data-theme"),
+          minUs: Number(minInput.value),
+          maxUs: Number(maxInput.value)
+        }));
+      } catch (e) {}
+    }
+
+    function applyTheme(theme) {
+      const next = theme === "light" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      themeToggle.setAttribute("aria-label", next === "dark" ? "Switch to light mode" : "Switch to dark mode");
+    }
+
+    function update(rawAngle, commitRange) {
+      const angle = clampAngle(rawAngle);
+      const range = readRange(commitRange);
+      slider.value = String(angle);
+      number.value = String(angle);
+
+      const us = Math.round(pulseUs(angle, range.minUs, range.maxUs));
+      pulseOut.textContent = us + " µs";
+      dutyOut.textContent = ((us / PERIOD_US) * 100).toFixed(2) + "%";
+      codeAngle.textContent = String(angle);
+      codeUs.textContent = String(us);
+      mapNote.textContent = "Linear map: 0° → " + range.minUs + " µs, 180° → " + range.maxUs + " µs. Adjust min/max if your SG90 hunts or cannot reach the stops.";
+      horn.style.transform = "rotate(" + (angle - 180) + "deg)";
+
+      presetButtons.forEach(function (btn) {
+        btn.setAttribute("aria-pressed", btn.getAttribute("data-angle") === String(angle) ? "true" : "false");
+      });
+    }
+
+    slider.addEventListener("input", function () { update(slider.value); });
+    number.addEventListener("input", function () { update(number.value); });
+    number.addEventListener("change", function () { update(number.value); });
+    minInput.addEventListener("input", function () { update(slider.value, false); });
+    maxInput.addEventListener("input", function () { update(slider.value, false); });
+    minInput.addEventListener("change", function () { update(slider.value, true); persist(); });
+    maxInput.addEventListener("change", function () { update(slider.value, true); persist(); });
+
+    presetButtons.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        update(btn.getAttribute("data-angle"));
+      });
+    });
+
+    themeToggle.addEventListener("click", function () {
+      const current = document.documentElement.getAttribute("data-theme");
+      applyTheme(current === "dark" ? "light" : "dark");
+      persist();
+    });
+
+    try {
+      const saved = JSON.parse(localStorage.getItem("sg90-calc") || "{}");
+      if (saved.minUs) minInput.value = String(saved.minUs);
+      if (saved.maxUs) maxInput.value = String(saved.maxUs);
+      if (saved.theme) applyTheme(saved.theme);
+    } catch (e) {}
+
+    update(90);
+  </script>
+</body>
+</html>
